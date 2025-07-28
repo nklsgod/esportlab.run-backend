@@ -1,0 +1,142 @@
+// schema.prisma
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+enum Role {
+  DUELLIST
+  CONTROLLER
+  SENTINEL
+  INITIATOR
+  FLEX
+}
+
+enum TaskScope {
+  TEAM
+  COACH
+  ROLE
+}
+
+enum Weekday {
+  MON
+  TUE
+  WED
+  THU
+  FRI
+  SAT
+  SUN
+}
+
+model User {
+  id           String    @id @default(cuid())
+  discordId    String    @unique
+  username     String
+  discriminator String?  // z. B. "0420" – kann entfallen seit Discord 2023
+  avatarHash   String?   // zur Laufzeit in URL umgewandelt
+  email        String?   @unique // wird von Discord nur mit `email`‑Scope geliefert
+  createdAt    DateTime  @default(now())
+  members      TeamMember[]
+  availabilities Availability[]
+  absences     Absence[]
+  ownedTeams   Team[]
+}
+
+model Team {
+  id           String   @id @default(cuid())
+  name         String
+  ownerId      String
+  owner        User     @relation(fields: [ownerId], references: [id])
+  joinCode     String   @unique
+  createdAt    DateTime @default(now())
+  members      TeamMember[]
+  preferences  TeamPreference?
+  slots        TrainingSlot[]
+  tasks        Task[]
+  availabilities Availability[]
+  absences     Absence[]
+}
+
+model TeamMember {
+  id        String  @id @default(cuid())
+  teamId    String
+  userId    String
+  role      Role?
+  isCoach   Boolean  @default(false)
+  createdAt DateTime @default(now())
+
+  team Team @relation(fields: [teamId], references: [id])
+  user User @relation(fields: [userId], references: [id])
+  assignedTasks Task[]
+
+  @@unique([teamId, userId])
+}
+
+model Availability {
+  id        String   @id @default(cuid())
+  teamId    String
+  userId    String
+  weekday   Weekday
+  startTime Int      // Minuten seit 00:00
+  endTime   Int
+  priority  Int      @default(1)
+
+  team Team @relation(fields: [teamId], references: [id])
+  user User @relation(fields: [userId], references: [id])
+}
+
+model Absence {
+  id        String   @id @default(cuid())
+  teamId    String
+  userId    String
+  start     DateTime
+  end       DateTime
+  reason    String?
+
+  team Team @relation(fields: [teamId], references: [id])
+  user User @relation(fields: [userId], references: [id])
+}
+
+model TeamPreference {
+  id              String  @id @default(cuid())
+  teamId          String  @unique
+  daysPerWeek     Int
+  hoursPerWeek    Int
+  minSlotMinutes  Int     @default(90)
+  maxSlotMinutes  Int     @default(180)
+
+  team Team @relation(fields: [teamId], references: [id])
+}
+
+model TrainingSlot {
+  id        String   @id @default(cuid())
+  teamId    String
+  date      DateTime
+  duration  Int
+  players   Int
+  createdAt DateTime @default(now())
+
+  team Team @relation(fields: [teamId], references: [id])
+}
+
+model Task {
+  id          String    @id @default(cuid())
+  teamId      String
+  scope       TaskScope
+  title       String
+  description String?
+  role        Role?
+  isCoachOnly Boolean   @default(false)
+  assigneeId  String?
+  status      String    @default("open")
+  dueAt       DateTime?
+  createdAt   DateTime  @default(now())
+
+  team        Team       @relation(fields: [teamId], references: [id])
+  assignee    TeamMember? @relation(fields: [assigneeId], references: [id])
+}
