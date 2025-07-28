@@ -36,9 +36,9 @@ export async function buildServer(): Promise<FastifyInstance> {
   // Register routes
   await server.register(authRoutes, { prefix: '/auth' });
   await server.register(teamsRoutes, { prefix: '/teams' });
-  await server.register(availabilityRoutes);
-  await server.register(scheduleRoutes);
-  await server.register(tasksRoutes);
+  await server.register(availabilityRoutes, { prefix: '/teams' });
+  await server.register(scheduleRoutes, { prefix: '/teams' });
+  await server.register(tasksRoutes, { prefix: '/teams' });
   await server.register(rolesRoutes);
 
   // Health check endpoint
