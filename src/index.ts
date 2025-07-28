@@ -12,7 +12,7 @@ async function start() {
 
     server.log.info(`Server listening on port ${env.PORT}`);
     server.log.info(`Environment: ${env.NODE_ENV}`);
-    server.log.info(`Dummy data mode: ${env.USE_DUMMY_DATA}`);
+    server.log.info(`Database: ${env.DATABASE_URL ? 'Connected' : 'Not configured'}`);
   } catch (error) {
     console.error('Error starting server:', error);
     process.exit(1);
