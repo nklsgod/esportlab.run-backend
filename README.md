@@ -65,8 +65,8 @@ Backend API for esportLab.run - A team management and scheduling platform for es
 
 2. **Set up environment variables**:
    ```bash
-   cp .env.example .env
-   # Edit .env with your values
+   cp .env.example .env.local
+   # Edit .env.local with your values
    ```
 
 3. **Set up database**:

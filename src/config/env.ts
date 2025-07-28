@@ -1,7 +1,10 @@
 import { config } from 'dotenv';
 import { z } from 'zod';
 
-config();
+// Only load .env file in development
+if (process.env.NODE_ENV !== 'production') {
+  config();
+}
 
 const envSchema = z.object({
   NODE_ENV: z.enum(['development', 'production', 'test']).default('development'),
